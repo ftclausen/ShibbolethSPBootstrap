@@ -1,0 +1,9 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET /environments/  controllers.ShibbolethEnvironments.list()
+GET /environments/new  controllers.ShibbolethEnvironments.newEnvironment()
+GET /environments/view/:env  controllers.ShibbolethEnvironments.viewEnvironment(env: String)
+GET /environments/edit/:env  controllers.ShibbolethEnvironments.editEnvironment(env: String)
+POST /environments/ controllers.ShibbolethEnvironments.save()

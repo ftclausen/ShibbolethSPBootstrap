@@ -1,0 +1,26 @@
+@(ShibbolethEnvironments: List[ShibbolethConfiguration])
+@* @main("All Shibboleth Environments") { *@
+        <h2>All Shibboleth Environments</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <td>Client Name</td>
+                    <td>Environment</td>
+                </tr>
+            </thead>
+            <tbody>
+                @for(ShibbolethEnvironment <- ShibbolethEnvironments) {
+                    <tr>
+                        <td><a href="@routes.ShibbolethEnvironment.details(ShibbolethEnvironment.clientName)">
+                            @views.html.ShibbolethEnvironments.clientName
+                        </a></td>
+                    </tr>
+@*                    <tr>
+                        <td><a href="@routes.ShibbolethEnvironment.details(ShibbolethEnvironment.environment)">
+                            @ShibbolethEnvironment.environment
+                        </a></td>
+                    </tr>  *@
+                }
+            </tbody>
+        </table>
+@* } *@
