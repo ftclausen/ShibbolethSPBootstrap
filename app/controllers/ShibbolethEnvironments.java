@@ -6,12 +6,16 @@ package controllers;
  * Time: 4:30 PM
  */
 
+import models.ShibbolethConfiguration;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import java.util.List;
+
 public class ShibbolethEnvironments extends Controller {
     public static Result list() {
-        return ok();
+        List<ShibbolethConfiguration> environmentsList = ShibbolethConfiguration.findAll();
+        return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
     }
 
     public static Result newEnvironment() {
