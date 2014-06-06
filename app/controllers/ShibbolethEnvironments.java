@@ -7,8 +7,10 @@ package controllers;
  */
 
 import models.ShibbolethConfiguration;
+import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
+import views.html.*;
 
 import java.util.List;
 
@@ -18,8 +20,10 @@ public class ShibbolethEnvironments extends Controller {
         return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
     }
 
-    public static Result newEnvironment() {
-        return TODO;
+    private static final Form<ShibbolethEnvironments> envForm = Form.form(ShibbolethEnvironments.class);
+
+    public static Result newEnvironment(String env) {
+        return ok(views.html.ShibbolethEnvironments.newEnvironment.render(envForm));
     }
 
     public static Result viewEnvironment(String env) {

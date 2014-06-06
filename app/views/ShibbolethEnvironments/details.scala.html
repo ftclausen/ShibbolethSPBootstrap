@@ -1,0 +1,17 @@
+@(envForm: Form[Product])
+@import helper._
+@import helper.twitterBootstrap._
+
+@main("Change or Create Environment") {
+    <h1>Change or Create an Environment</h1>
+    @helper.form(action = routes.ShibbolethEnvironments.save()) {
+        <fieldset>
+            <legend>Product (@envForm("clientName").valueOr("New"))</legend>
+            @helper.inputText(envForm("clientName"), '_label -> "Client Name")
+            @helper.inputText(envForm("environment"), '_label -> "Client Environment")
+            @helper.inputText(envForm("entityId"), '_label -> "Service Provider Entity ID")
+        </fieldset>
+        <input type="submit" class="btn btn-primary" value="Save">
+        <a class="btn" href="@routes.ShibbolethEnvironments.list()">Go back without saving</a>
+    }
+}
