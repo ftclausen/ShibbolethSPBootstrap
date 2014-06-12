@@ -1,4 +1,4 @@
-@(envForm: Form[Product])
+@(envForm: Form[ShibbolethConfiguration])
 @import helper._
 @import helper.twitterBootstrap._
 
@@ -6,10 +6,11 @@
     <h1>Change or Create an Environment</h1>
     @helper.form(action = routes.ShibbolethEnvironments.save()) {
         <fieldset>
-            <legend>Product (@envForm("clientName").valueOr("New"))</legend>
+            <legend>Environment (@envForm("clientName").valueOr("New"))</legend>
             @helper.inputText(envForm("clientName"), '_label -> "Client Name")
             @helper.inputText(envForm("environment"), '_label -> "Client Environment")
             @helper.inputText(envForm("entityId"), '_label -> "Service Provider Entity ID")
+            @helper.inputText(envForm("remoteUserAttribute"), '_label -> "Remote User Attribute")
         </fieldset>
         <input type="submit" class="btn btn-primary" value="Save">
         <a class="btn" href="@routes.ShibbolethEnvironments.list()">Go back without saving</a>

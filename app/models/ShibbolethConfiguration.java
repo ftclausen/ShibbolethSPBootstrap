@@ -2,6 +2,7 @@ package models;
 
 import java.util.ArrayList;
 import java.util.List;
+import play.data.validation.Constraints;
 
 /**
  * Author: Friedrich "Fred" Clausen (friedrich.clausen@blackboard.com)
@@ -10,9 +11,13 @@ import java.util.List;
  */
 public class ShibbolethConfiguration {
 
+    @Constraints.Required
     public String environment;
+    @Constraints.Required
     public String entityId;
+    @Constraints.Required
     public String remoteUserAttribute;
+    @Constraints.Required
     public String clientName;
 
     public ShibbolethConfiguration() {}

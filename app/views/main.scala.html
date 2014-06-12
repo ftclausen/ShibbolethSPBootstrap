@@ -6,6 +6,16 @@
     <title>@title</title>
 </head>
 <body>
-<section class="content">@content</section>
+    @if(flash.containsKey("success")) {
+        <div class="alert alert-success">
+            @flash.get("success")
+        </div>
+    }
+    @if(flash.containsKey("error")) {
+        <div class="alert alert-error">
+            @flash.get("error")
+        </div>
+    }
+    <section class="content">@content</section>
 </body>
 </html>

@@ -20,10 +20,10 @@ public class ShibbolethEnvironments extends Controller {
         return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
     }
 
-    private static final Form<ShibbolethEnvironments> envForm = Form.form(ShibbolethEnvironments.class);
+    private static final Form<ShibbolethConfiguration> envForm = Form.form(ShibbolethConfiguration.class);
 
-    public static Result newEnvironment(String env) {
-        return ok(views.html.ShibbolethEnvironments.newEnvironment.render(envForm));
+    public static Result newEnvironment() {
+        return ok(views.html.ShibbolethEnvironments.details.render(envForm));
     }
 
     public static Result viewEnvironment(String env) {
@@ -31,10 +31,24 @@ public class ShibbolethEnvironments extends Controller {
     }
 
     public static Result editEnvironment(String env) {
-        return TODO;
+        final ShibbolethConfiguration targetEnv = ShibbolethConfiguration.findByEnv(env);
+        if (targetEnv == null) {
+            return notFound(String.format("Environment %s does not exist.", targetEnv));
+        }
+
+        Form<ShibbolethConfiguration> filledForm = envForm.fill(targetEnv);
+        return ok(views.html.ShibbolethEnvironments.details.render(filledForm));
     }
 
     public static Result save() {
-        return TODO;
+        Form<ShibbolethConfiguration> boundForm = envForm.bindFromRequest();
+        if (boundForm.hasErrors()) {
+            flash("error", "Please correct the form below.");
+            return(badRequest(views.html.ShibbolethEnvironments.details.render(boundForm)));
+        }
+        ShibbolethConfiguration shibbolethConfiguration = boundForm.get();
+        shibbolethConfiguration.save();
+        flash("success", String.format("Saved Shibboleth Environment %s", shibbolethConfiguration));
+        return redirect(controllers.routes.ShibbolethEnvironments.list());
     }
 }
