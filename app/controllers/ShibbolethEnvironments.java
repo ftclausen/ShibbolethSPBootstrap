@@ -6,11 +6,16 @@ package controllers;
  * Time: 4:30 PM
  */
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.ShibbolethConfiguration;
 import play.data.Form;
+import play.libs.Json;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import play.mvc.BodyParser;
 
 import java.util.List;
 
@@ -50,5 +55,23 @@ public class ShibbolethEnvironments extends Controller {
         shibbolethConfiguration.save();
         flash("success", String.format("Saved Shibboleth Environment %s", shibbolethConfiguration));
         return redirect(controllers.routes.ShibbolethEnvironments.list());
+    }
+
+    // Check http://www.playframework.com/documentation/2.2.0/JavaJsonRequests
+    // for the next part
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result saveJson() {
+        JsonNode json = request().body().asJson();
+        ObjectNode result = Json.newObject();
+        String id = json.findPath("id").textValue();
+        if (id == null) {
+            result.put("status", "KO");
+            result.put("message", "Missing parameter [id]");
+            return badRequest();
+        } else {
+            result.put("status", "OK");
+            result.put("message", "Received ID : " + id);
+            return ok(result);
+        }
     }
 }
