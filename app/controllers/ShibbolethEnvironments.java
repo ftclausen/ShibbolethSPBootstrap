@@ -16,13 +16,24 @@ import play.mvc.Result;
 import views.html.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.mvc.BodyParser;
+import play.Logger;
+
 
 import java.util.List;
 
 public class ShibbolethEnvironments extends Controller {
+
     public static Result list() {
-        List<ShibbolethConfiguration> environmentsList = ShibbolethConfiguration.findAll();
-        return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
+        Logger.info("Listing!");
+        try {
+            List<ShibbolethConfiguration> environmentsList = ShibbolethConfiguration.findAll();
+        } catch (Exception e) {
+            Logger.error(e.getLocalizedMessage());
+            return internalServerError("Error fulfilling request : " + e.getMessage());
+        }
+
+        // return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
+        return ok("The list goes here");
     }
 
     private static final Form<ShibbolethConfiguration> envForm = Form.form(ShibbolethConfiguration.class);

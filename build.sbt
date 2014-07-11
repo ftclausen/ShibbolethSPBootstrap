@@ -6,7 +6,9 @@ libraryDependencies ++= Seq(
   javaJdbc,
   javaEbean,
   cache,
-  "org.jclouds" % "jclouds-core" % "1.6.0"
+  "org.apache.jclouds" % "jclouds-all" % "1.7.3",
+  "ch.qos.logback" % "logback-classic" % "1.1.2",
+  "org.apache.jclouds.api" % "chef" % "1.7.3"
 )     
 
 play.Project.playJavaSettings
