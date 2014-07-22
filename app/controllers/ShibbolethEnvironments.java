@@ -19,21 +19,22 @@ import play.mvc.BodyParser;
 import play.Logger;
 
 
+import java.util.Iterator;
 import java.util.List;
 
 public class ShibbolethEnvironments extends Controller {
 
     public static Result list() {
-        Logger.info("Listing!");
+        List<ShibbolethConfiguration> environmentsList;
         try {
-            List<ShibbolethConfiguration> environmentsList = ShibbolethConfiguration.findAll();
+            environmentsList = ShibbolethConfiguration.findAll();
         } catch (Exception e) {
             Logger.error(e.getLocalizedMessage());
-            return internalServerError("Error fulfilling request : " + e.getMessage());
+            return internalServerError("Error listing environments : " + e.getMessage());
         }
 
-        // return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
-        return ok("The list goes here");
+        return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
+        // return ok("The list goes here");
     }
 
     private static final Form<ShibbolethConfiguration> envForm = Form.form(ShibbolethConfiguration.class);
@@ -47,9 +48,14 @@ public class ShibbolethEnvironments extends Controller {
     }
 
     public static Result editEnvironment(String env) {
-        final ShibbolethConfiguration targetEnv = ShibbolethConfiguration.findByEnv(env);
-        if (targetEnv == null) {
-            return notFound(String.format("Environment %s does not exist.", targetEnv));
+        final ShibbolethConfiguration targetEnv;
+        try {
+            targetEnv = ShibbolethConfiguration.findByEnv(env);
+            if (targetEnv == null) {
+                return notFound(String.format("Environment %s does not exist.", targetEnv));
+            }
+        } catch (Exception e) {
+            return internalServerError("Error retrieving environment to edit : " + e.getMessage());
         }
 
         Form<ShibbolethConfiguration> filledForm = envForm.fill(targetEnv);
@@ -74,14 +80,24 @@ public class ShibbolethEnvironments extends Controller {
     public static Result saveJson() {
         JsonNode json = request().body().asJson();
         ObjectNode result = Json.newObject();
-        String id = json.findPath("id").textValue();
-        if (id == null) {
+        // Now we need some massaging to extract the nested
+        // "shib_data" embedded json document and map that to
+        // our model
+        JsonNode shib_data = json.findPath("shib_data");
+        //Logger.debug("Got keys " )
+        Iterator fields =  shib_data.fieldNames();
+        while(fields.hasNext()) {
+            Logger.debug("Got key : " + fields.next());
+        }
+        Logger.debug("Attempting to save posted Json for ID " + shib_data.findPath("id").asText());
+        if (shib_data.findPath("id") == null) {
             result.put("status", "KO");
             result.put("message", "Missing parameter [id]");
-            return badRequest();
+            Logger.error("Bad Json request received : " + json.toString());
+            return badRequest(result);
         } else {
             result.put("status", "OK");
-            result.put("message", "Received ID : " + id);
+            result.put("message", "Received ID : " + shib_data.findPath("id").asText());
             return ok(result);
         }
     }
