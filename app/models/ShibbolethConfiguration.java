@@ -36,15 +36,15 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  *
  *  [debug] application - Got key : federation_metadata
- [debug] application - Got key : remote_user [DONE as
+ [debug] application - Got key : remote_user
  [debug] application - Got key : displayname  DONE
- [debug] application - Got key : description DONE
+ [debug] application - Got key : description
  [debug] application - Got key : idp
  [debug] application - Got key : sp-cert
  [debug] application - Got key : attribute_map
  [debug] application - Got key : logo
  [debug] application - Got key : entityid  DONE
- [debug] application - Got key : id [DONE as environment]
+ [debug] application - Got key : id DONE
  [debug] application - Got key : sp-key
  */
 public class ShibbolethConfiguration {
@@ -60,7 +60,7 @@ public class ShibbolethConfiguration {
     public String displayname;
     @Constraints.Required
     public String idp;
-    //public String sp-cert;
+    // public String sp-cert;
 
 
     private static ChefApi api;
