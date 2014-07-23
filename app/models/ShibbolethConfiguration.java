@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.Logger;
 import org.jclouds.ContextBuilder;
 import org.jclouds.chef.ChefApi;
@@ -34,18 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
  *  * TODO: Throw more specific exceptions
  *  * TODO: Figure out how to map JSON names to better member variable names
  *
- *
- *  [debug] application - Got key : federation_metadata
- [debug] application - Got key : remote_user
- [debug] application - Got key : displayname  DONE
- [debug] application - Got key : description
- [debug] application - Got key : idp
- [debug] application - Got key : sp-cert
- [debug] application - Got key : attribute_map
- [debug] application - Got key : logo
- [debug] application - Got key : entityid  DONE
- [debug] application - Got key : id DONE
- [debug] application - Got key : sp-key
  */
 public class ShibbolethConfiguration {
 
@@ -54,14 +42,23 @@ public class ShibbolethConfiguration {
     @Constraints.Required
     public String entityid;
     // @Constraints.Required
-    // public String remote_user;
+    @JsonProperty("remote_user")
+    public String remoteUser;
     @Constraints.Required
     // public String displayName;
     public String displayname;
     @Constraints.Required
     public String idp;
-    // public String sp-cert;
-
+    @JsonProperty("sp-cert")
+    public String spCert;
+    public String description;
+    @JsonProperty("attribute_map")
+    public String attributeMap;
+    public String logo;
+    @JsonProperty("sp-key")
+    public String spKey;
+    @JsonProperty("federation_metadata")
+    public String federationMetadata;
 
     private static ChefApi api;
     private static ChefContext chefContext;
