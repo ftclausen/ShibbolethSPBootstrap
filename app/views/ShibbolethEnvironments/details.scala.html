@@ -7,9 +7,9 @@
     @helper.form(action = routes.ShibbolethEnvironments.save()) {
         <fieldset>
             <legend>Environment (@envForm("clientName").valueOr("New"))</legend>
-            @helper.inputText(envForm("description"), '_label -> "Description")
+            @helper.inputText(envForm("displayname"), '_label -> "Name")
             @helper.inputText(envForm("environment"), '_label -> "Client Environment")
-            @helper.inputText(envForm("entityId"), '_label -> "Service Provider Entity ID")
+            @helper.inputText(envForm("entityid"), '_label -> "Service Provider Entity ID")
             @helper.inputText(envForm("idp"), '_label -> "Identity Provider Entity ID")
         </fieldset>
         <input type="submit" class="btn btn-primary" value="Save">

@@ -6,6 +6,8 @@ package controllers;
  * Time: 4:30 PM
  */
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.ShibbolethConfiguration;
 import play.data.Form;
@@ -13,12 +15,13 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
-import views.html.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import play.mvc.BodyParser;
 import play.Logger;
+import scala.util.control.*;
 
 
+import java.io.IOException;
+import java.lang.Exception;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,13 +31,17 @@ public class ShibbolethEnvironments extends Controller {
         List<ShibbolethConfiguration> environmentsList;
         try {
             environmentsList = ShibbolethConfiguration.findAll();
-        } catch (Exception e) {
-            Logger.error(e.getLocalizedMessage());
+        } catch (java.util.concurrent.TimeoutException e) {
+            Logger.error("Timeout connecting to Chef server");
+            return internalServerError("Timeout connecting to Chef server");
+        } catch (IOException e) {
+            Logger.error("Error listing envs : " + e.getMessage());
             return internalServerError("Error listing environments : " + e.getMessage());
+        } catch (Exception e) {
+            Logger.error("Error connecting to Chef server : " + e.getMessage());
+            return internalServerError("Error connecting to Chef server : " + e.getMessage());
         }
-
         return ok(views.html.ShibbolethEnvironments.list.render(environmentsList));
-        // return ok("The list goes here");
     }
 
     private static final Form<ShibbolethConfiguration> envForm = Form.form(ShibbolethConfiguration.class);
@@ -69,7 +76,7 @@ public class ShibbolethEnvironments extends Controller {
             return(badRequest(views.html.ShibbolethEnvironments.details.render(boundForm)));
         }
         ShibbolethConfiguration shibbolethConfiguration = boundForm.get();
-        shibbolethConfiguration.save();
+        // TODO: Convert to json and have the object save itself
         flash("success", String.format("Saved Shibboleth Environment %s", shibbolethConfiguration));
         return redirect(controllers.routes.ShibbolethEnvironments.list());
     }
@@ -78,12 +85,21 @@ public class ShibbolethEnvironments extends Controller {
     // for the next part
     @BodyParser.Of(BodyParser.Json.class)
     public static Result saveJson() {
-        JsonNode json = request().body().asJson();
-        ObjectNode result = Json.newObject();
-        // Now we need some massaging to extract the nested
-        // "shib_data" embedded json document and map that to
-        // our model
-        JsonNode shib_data = json.findPath("shib_data");
+        JsonNode json;
+        ObjectNode result = null;
+        JsonNode shib_data;
+        ShibbolethConfiguration shibbolethConfiguration;
+        Logger.debug("Attempting to extract data from posted results");
+        try {
+            json = request().body().asJson();
+            result = Json.newObject();
+            shib_data = json.findPath("shib_data");
+        } catch (NullPointerException e) {
+            result.put("status", "ERROR");
+            result.put("message", "Not a valid JSON document - is the content type set to \"application/json\"?");
+            return badRequest(result);
+        }
+
         //Logger.debug("Got keys " )
         Iterator fields =  shib_data.fieldNames();
         while(fields.hasNext()) {
@@ -91,14 +107,34 @@ public class ShibbolethEnvironments extends Controller {
         }
         Logger.debug("Attempting to save posted Json for ID " + shib_data.findPath("id").asText());
         if (shib_data.findPath("id") == null) {
-            result.put("status", "KO");
+            result.put("status", "ERROR");
             result.put("message", "Missing parameter [id]");
             Logger.error("Bad Json request received : " + json.toString());
             return badRequest(result);
-        } else {
-            result.put("status", "OK");
-            result.put("message", "Received ID : " + shib_data.findPath("id").asText());
-            return ok(result);
         }
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            // Logger.debug("Attempting to map the following JSON : " + shib_data.toString());
+            shibbolethConfiguration = mapper.readValue(shib_data.toString(), ShibbolethConfiguration.class);
+        } catch (JsonMappingException e) {
+            result.put("status", "ERROR");
+            result.put("message", "Could not map JSON : " + e.getMessage());
+            return badRequest(result);
+        } catch (IOException IoException) {
+            result.put("status", "ERROR");
+            result.put("message", "Could not map JSON : " + IoException.getMessage());
+            return badRequest(result);
+        }
+        result.put("status", "OK");
+        result.put("message", "Received ID : " + shib_data.findPath("id").asText());
+        try {
+            shibbolethConfiguration.save();
+        } catch (Exception e) {
+            result.put("status", "ERROR");
+            result.put("message", "Cannot save data bag : " + e.getMessage());
+        }
+        return ok(result);
+
     }
 }

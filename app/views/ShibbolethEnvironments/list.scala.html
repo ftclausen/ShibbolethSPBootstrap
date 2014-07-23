@@ -5,7 +5,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Description</th>
+                <th>Name</th>
                 <th>Environment</th>
                 <th>Entity ID</th>
             </tr>
@@ -13,9 +13,9 @@
         <tbody>
             @for(env <- ShibbolethEnvironments) {
                 <tr>
-                    <td><a href="@routes.ShibbolethEnvironments.viewEnvironment(env.id)">@env.description</a></td>
+                    <td><a href="@routes.ShibbolethEnvironments.viewEnvironment(env.id)">@env.displayname</a></td>
                     <td>@env.id</td>
-                    <td>@env.entityId</td>
+                    <td>@env.entityid</td>
                 </tr>
             }
         </tbody>
