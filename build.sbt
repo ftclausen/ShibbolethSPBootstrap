@@ -1,6 +1,6 @@
 name := "ShibbolethSPBootstrap"
 
-version := "1.0-SNAPSHOT"
+version := "1.0"
 
 libraryDependencies ++= Seq(
   javaJdbc,

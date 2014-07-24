@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.Exception;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class ShibbolethEnvironments extends Controller {
 
@@ -100,7 +101,6 @@ public class ShibbolethEnvironments extends Controller {
             return badRequest(result);
         }
 
-        //Logger.debug("Got keys " )
         Iterator fields =  shib_data.fieldNames();
         while(fields.hasNext()) {
             Logger.debug("Got key : " + fields.next());
@@ -135,6 +135,36 @@ public class ShibbolethEnvironments extends Controller {
             result.put("message", "Cannot save data bag : " + e.getMessage());
         }
         return ok(result);
+    }
 
+    public static Result healthCheck() {
+        ObjectNode result = Json.newObject();
+        // Assume the health check is not OK.
+        // For some reason if the Chef server host is up but the server
+        // itself is not running we can't catch that as an exception. We just
+        // get o.j.h.h.BackoffLimitedRetryHandler - Cannot retry after server error
+        result.put("status", "ERROR");
+        result.put("message", "Issue connecting to Chef server");
+        try {
+            ShibbolethConfiguration.healthCheck();
+            result.removeAll();
+            result.put("status", "OK");
+            result.put("message", "Health Check OK");
+        } catch (Exception e) {
+            if (e instanceof IOException) {
+                Logger.error("Can't open chef credentials : " + e.getMessage());
+                result.removeAll();
+                result.put("status", "ERROR");
+                result.put("message", "Can't open chef credentials : " + e.getMessage());
+                return badRequest(result);
+            } else if (e instanceof TimeoutException) {
+                Logger.error("Can't connect to Chef server : " + e.getMessage());
+                result.removeAll();
+                result.put("status", "ERROR");
+                result.put("message", "Can't connect to Chef server : " + e.getMessage());
+                return badRequest(result);
+            }
+        }
+        return ok(result);
     }
 }

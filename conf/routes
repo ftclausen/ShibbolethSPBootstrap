@@ -2,12 +2,17 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+
 GET /environments/  controllers.ShibbolethEnvironments.list()
 GET /environments/new  controllers.ShibbolethEnvironments.newEnvironment()
 GET /environments/view/:env  controllers.ShibbolethEnvironments.viewEnvironment(env: String)
 GET /environments/edit/:env  controllers.ShibbolethEnvironments.editEnvironment(env: String)
+GET /healthCheck controllers.ShibbolethEnvironments.healthCheck()
+GET /  controllers.ShibbolethEnvironments.list()
 POST /environments/ controllers.ShibbolethEnvironments.save()
 POST /api/environments/save controllers.ShibbolethEnvironments.saveJson()
+
+
 
 # Map static resources from the /public folder to the /public path
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)

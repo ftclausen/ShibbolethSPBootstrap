@@ -157,6 +157,7 @@ public class ShibbolethConfiguration {
 
     public void save()
             throws IOException, JsonMappingException, JsonGenerationException, TimeoutException {
+
         Logger.debug("Going to save env as data bag");
         api = getChefServer();
         Set<String> existingDatabags = api.listDatabags();
@@ -167,12 +168,10 @@ public class ShibbolethConfiguration {
             Logger.debug("Shibboleth data bag found OK");
         }
         ObjectMapper mapper = new ObjectMapper();
-        // mapper.writeValue(new File("/tmp/test.json"), this);
-        // Somewhat hackish way to construct the final data bag item.
-        // We need to embed our shib config object into the greater data
-        // bag JSON structure
 
-        // Step 1 - construct data bag shell JSON without the actual shibboleth data
+        // Somewhat hackish way to construct the final data bag item because
+        // we need to embed our shib config object into the greater data
+        // bag JSON structure.
         String finalDatabag = String.format("{\"id\": \"%s\", \"shib_data\": %s }", this.id, mapper.writeValueAsString(this));
         Logger.debug("Going to save data bag as : " + finalDatabag);
 
@@ -181,5 +180,17 @@ public class ShibbolethConfiguration {
             throw new IOException("Error creating data bag");
         }
         Logger.info("Create data bag item for id : " + this.id);
+    }
+
+    public static void healthCheck()
+            throws TimeoutException, IOException {
+        api = getChefServer();
+        Set<String> databags = api.listDatabags();
+        Logger.debug("Databags found : " + databags.size());
+        if (databags != null) {
+            Logger.debug("Health Check OK");
+        } else {
+            Logger.error("Health Check Failed - see thrown exception for details");
+        }
     }
 }
