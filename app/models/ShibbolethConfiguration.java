@@ -17,6 +17,8 @@ import org.jclouds.chef.ChefContext;
 import org.jclouds.chef.domain.DatabagItem;
 import com.google.common.io.Files;
 import static com.google.common.base.Charsets.UTF_8;
+
+import play.Play;
 import play.data.validation.Constraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,6 +64,7 @@ public class ShibbolethConfiguration {
 
     private static ChefApi api;
     private static ChefContext chefContext;
+    private static String dataBag;
 
     private static ChefContext buildChefContext(String server, String pemFile, String credential) {
         chefContext = ContextBuilder.newBuilder("chef")
@@ -72,8 +75,12 @@ public class ShibbolethConfiguration {
     }
 
     private static ChefApi getChefServer() throws TimeoutException, IOException {
-        String server = "cheflocal";
-        String pemFile = "/Users/fclausen/.chef/fclausen.pem";
+        String server = Play.application().configuration().getString("application.chef.endpoint");
+        Logger.info("Using Chef server : " + server);
+        String pemFile = Play.application().configuration().getString("application.chef.pemfile");
+        Logger.info("Using credentials at : " + pemFile);
+        dataBag = Play.application().configuration().getString("application.chef.databag");
+        Logger.info("Using data bag : " + dataBag);
         String credential = Files.toString(new File(pemFile), UTF_8);
         if (api == null) {
             Logger.info("Establishing new connection to Chef server...");
@@ -112,11 +119,11 @@ public class ShibbolethConfiguration {
 
     public static List<ShibbolethConfiguration> findAll() throws TimeoutException, IOException {
         api = getChefServer();
-        Set<String> shibbolethDatabags = api.listDatabagItems("shibboleth-sp");
+        Set<String> shibbolethDatabags = api.listDatabagItems(dataBag);
         ObjectMapper mapper = new ObjectMapper();
         List<ShibbolethConfiguration> configsFromChef = new ArrayList<ShibbolethConfiguration>();
         for (String databagItem : shibbolethDatabags) {
-            DatabagItem currentDatabagItem = api.getDatabagItem("shibboleth-sp", databagItem);
+            DatabagItem currentDatabagItem = api.getDatabagItem(dataBag, databagItem);
             JsonNode databagItemJson = mapper.readTree(currentDatabagItem.toString());
             Logger.debug("Data bag : " + databagItem +
                     "with entity ID - " + databagItemJson.findPath("entityid").toString());
@@ -161,9 +168,9 @@ public class ShibbolethConfiguration {
         Logger.debug("Going to save env as data bag");
         api = getChefServer();
         Set<String> existingDatabags = api.listDatabags();
-        if (!existingDatabags.contains("shibboleth-sp")) {
+        if (!existingDatabags.contains(dataBag)) {
             Logger.info("Shibboleth data bag not found - creating...");
-            api.createDatabag("shibboleth-sp");
+            api.createDatabag(dataBag);
         } else {
             Logger.debug("Shibboleth data bag found OK");
         }
@@ -175,7 +182,7 @@ public class ShibbolethConfiguration {
         String finalDatabag = String.format("{\"id\": \"%s\", \"shib_data\": %s }", this.id, mapper.writeValueAsString(this));
         Logger.debug("Going to save data bag as : " + finalDatabag);
 
-        DatabagItem databagItem = api.createDatabagItem("shibboleth-sp", new DatabagItem(this.id, finalDatabag));
+        DatabagItem databagItem = api.createDatabagItem(dataBag, new DatabagItem(this.id, finalDatabag));
         if (databagItem.getId() == null) {
             throw new IOException("Error creating data bag");
         }

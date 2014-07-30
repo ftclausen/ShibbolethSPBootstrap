@@ -5,15 +5,15 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Environment</th>
-                <th>Entity ID</th>
+                <th><h3>Name</h3></th>
+                <th><h3>Environment</h3></th>
+                <th><h3>SP Entity ID</h3></th>
             </tr>
         </thead>
         <tbody>
             @for(env <- ShibbolethEnvironments) {
                 <tr>
-                    <td><a href="@routes.ShibbolethEnvironments.viewEnvironment(env.id)">@env.displayname</a></td>
+                    <td><b>@env.displayname</b></td>
                     <td>@env.id</td>
                     <td>@env.entityid</td>
                 </tr>
