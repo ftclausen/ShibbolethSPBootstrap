@@ -66,10 +66,10 @@ public class ShibbolethConfiguration {
     private static ChefContext chefContext;
     private static String dataBag;
 
-    private static ChefContext buildChefContext(String server, String pemFile, String credential) {
+    private static ChefContext buildChefContext(String server, String user, String pemFile, String credential) {
         chefContext = ContextBuilder.newBuilder("chef")
                 .endpoint("https://" + server)
-                .credentials("fclausen", credential)
+                .credentials(user, credential)
                 .buildView(ChefContext.class);
         return chefContext;
     }
@@ -78,13 +78,15 @@ public class ShibbolethConfiguration {
         String server = Play.application().configuration().getString("application.chef.endpoint");
         Logger.info("Using Chef server : " + server);
         String pemFile = Play.application().configuration().getString("application.chef.pemfile");
-        Logger.info("Using credentials at : " + pemFile);
+        Logger.info("Using key at : " + pemFile);
+        String chefUser = Play.application().configuration().getString("application.chef.user");
+        Logger.info("Using user : " + chefUser);
         dataBag = Play.application().configuration().getString("application.chef.databag");
         Logger.info("Using data bag : " + dataBag);
         String credential = Files.toString(new File(pemFile), UTF_8);
         if (api == null) {
             Logger.info("Establishing new connection to Chef server...");
-            chefContext = buildChefContext(server, pemFile, credential);
+            chefContext = buildChefContext(server, chefUser, pemFile, credential);
             api = chefContext.unwrapApi(ChefApi.class);
         } else {
             // Is our connection alive? If so then just re-use otherwise
@@ -93,7 +95,7 @@ public class ShibbolethConfiguration {
             if (testDatabags == null) {
                 Logger.info("Reconnecting to Chef server...");
                 chefContext.close(); // Not sure if this will always work
-                chefContext = buildChefContext(server, pemFile, credential);
+                chefContext = buildChefContext(server, chefUser, pemFile, credential);
                 api = chefContext.unwrapApi(ChefApi.class);
             }
         }
