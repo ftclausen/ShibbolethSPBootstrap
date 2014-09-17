@@ -85,7 +85,7 @@ public class ShibbolethEnvironments extends Controller {
     // Check http://www.playframework.com/documentation/2.2.0/JavaJsonRequests
     // for the next part
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result saveJson() {
+    public static Result saveJson(boolean overwrite) {
         JsonNode json;
         ObjectNode result = null;
         JsonNode shib_data;
@@ -99,6 +99,18 @@ public class ShibbolethEnvironments extends Controller {
             result.put("status", "ERROR");
             result.put("message", "Not a valid JSON document - is the content type set to \"application/json\"?");
             return badRequest(result);
+        }
+
+        if (overwrite) {
+            Logger.debug("Will be overwriting existing data bag");
+            try {
+                shibbolethConfiguration = ShibbolethConfiguration.findByEnv(shib_data.findPath("id").asText());
+                shibbolethConfiguration.delete();
+            } catch (TimeoutException|IOException e) {
+                Logger.error("Could not contact chef server " + e.getMessage());
+            }
+        } else {
+            Logger.debug("Will not overwrite existing data bag");
         }
 
         Iterator fields =  shib_data.fieldNames();

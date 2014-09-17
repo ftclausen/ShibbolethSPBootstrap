@@ -10,7 +10,8 @@ GET /environments/edit/:env  controllers.ShibbolethEnvironments.editEnvironment(
 GET /healthCheck controllers.ShibbolethEnvironments.healthCheck()
 GET /  controllers.ShibbolethEnvironments.list()
 POST /environments/ controllers.ShibbolethEnvironments.save()
-POST /api/environments/save controllers.ShibbolethEnvironments.saveJson()
+POST /api/environments/save controllers.ShibbolethEnvironments.saveJson(overwrite:Boolean ?= false)
+POST /api/environments/overwrite controllers.ShibbolethEnvironments.saveJson(overwrite:Boolean ?= true)
 
 
 

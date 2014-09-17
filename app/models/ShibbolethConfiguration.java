@@ -76,16 +76,11 @@ public class ShibbolethConfiguration {
 
     private static ChefApi getChefServer() throws TimeoutException, IOException {
         String server = Play.application().configuration().getString("application.chef.endpoint");
-        Logger.info("Using Chef server : " + server);
         String pemFile = Play.application().configuration().getString("application.chef.pemfile");
-        Logger.info("Using key at : " + pemFile);
         String chefUser = Play.application().configuration().getString("application.chef.user");
-        Logger.info("Using user : " + chefUser);
         dataBag = Play.application().configuration().getString("application.chef.databag");
-        Logger.info("Using data bag : " + dataBag);
         String credential = Files.toString(new File(pemFile), UTF_8);
         if (api == null) {
-            Logger.info("Establishing new connection to Chef server...");
             chefContext = buildChefContext(server, chefUser, pemFile, credential);
             api = chefContext.unwrapApi(ChefApi.class);
         } else {
@@ -112,7 +107,6 @@ public class ShibbolethConfiguration {
         this.entityid = entityid;
         this.displayname = displayname;
         this.api = getChefServer();
-        Logger.info("Got Chef API  : " + api);
     }
 
     public String toString() {
@@ -127,8 +121,6 @@ public class ShibbolethConfiguration {
         for (String databagItem : shibbolethDatabags) {
             DatabagItem currentDatabagItem = api.getDatabagItem(dataBag, databagItem);
             JsonNode databagItemJson = mapper.readTree(currentDatabagItem.toString());
-            Logger.debug("Data bag : " + databagItem +
-                    "with entity ID - " + databagItemJson.findPath("entityid").toString());
             configsFromChef.add(new ShibbolethConfiguration(
                     databagItemJson.findPath("id").asText(),
                     databagItemJson.findPath("entityid").asText(),
@@ -182,13 +174,27 @@ public class ShibbolethConfiguration {
         // we need to embed our shib config object into the greater data
         // bag JSON structure.
         String finalDatabag = String.format("{\"id\": \"%s\", \"shib_data\": %s }", this.id, mapper.writeValueAsString(this));
-        Logger.debug("Going to save data bag as : " + finalDatabag);
+        Logger.debug("Going to save data bag with length (bytes) " + finalDatabag.length());
 
         DatabagItem databagItem = api.createDatabagItem(dataBag, new DatabagItem(this.id, finalDatabag));
         if (databagItem.getId() == null) {
             throw new IOException("Error creating data bag");
         }
         Logger.info("Create data bag item for id : " + this.id);
+    }
+
+    public void delete()
+            throws IOException, TimeoutException {
+
+        Logger.debug("Going to delete data bag");
+        api = getChefServer();
+        Set<String> existingDatabags = api.listDatabags();
+        if (!existingDatabags.contains(dataBag)) {
+            Logger.info("Shibboleth data bag not found; deletion not required...");
+        } else {
+            Logger.debug("Deleting data bag...");
+            api.deleteDatabagItem(dataBag, this.id);
+        }
     }
 
     public static void healthCheck()
